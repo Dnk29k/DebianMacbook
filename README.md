@@ -1,71 +1,33 @@
-# 💻 MacBook Pro 2010-2012: Debian 12 Optimization Suite
+# 💻 MacBook Pro Debian 12 - Setup de Auditoría
 
-![Debian](https://img.shields.io/badge/OS-Debian%2012-red?logo=debian) ![i3wm](https://img.shields.io/badge/WM-i3wm-blue) ![Hardware](https://img.shields.io/badge/Hardware-Apple%20MacBook%20Pro-silver)
+Este repositorio contiene la configuración optimizada para mi MacBook Pro con Debian 12, enfocado en ciberseguridad y productividad. [cite: 2026-02-14, 2026-02-16]
 
-## 📖 Introducción
-Este proyecto documenta la reconstrucción total de un MacBook Pro bajo Debian 12, priorizando el rendimiento y la estabilidad del hardware. No se trata de una simple personalización estética; es una solución de infraestructura que resuelve problemas críticos de controladores Broadcom y persistencia de módulos del kernel.
+## 🛠️ Especificaciones de Hardware y Red
+* **Dispositivo:** MacBook Pro 2010. [cite: 2026-02-16]
+* **Interfaz WiFi:** `wlan0`. [cite: 2026-02-17]
+* **Interfaz Ethernet:** `enp3s0`. [cite: 2026-02-17]
+* **Compositor:** `picom` (necesario para transparencias en Polybar). [cite: 2026-02-15]
 
----
+## ⌨️ Guía de Atajos (Cheat Sheet)
 
-## 🗺️ Hoja de Ruta Técnica (Roadmap)
+### Neovim (NvChad v0.11.6)
+* **Abrir editor:** Comando `v` (alias de `nvim`). [cite: 2026-02-15, 2026-02-19]
+* **Explorador de archivos:** `Ctrl + n`. [cite: 2026-02-19]
+* **Buscador (Telescope):** `Espacio + f + f`. [cite: 2026-02-19]
+* **Terminal flotante:** `Alt + i`. [cite: 2026-02-19]
+* **Temas:** `Espacio + t + h`. [cite: 2026-02-19]
 
-### Fase 1: Diagnóstico y Drivers
-* **El Problema:** El hardware de Apple usa chips Broadcom que suelen entrar en conflicto con el driver genérico `wl`. Esto genera el **Error -22** y fallos de escaneo.
-* **La Solución:** Implementar el firmware `b43` heredado, optimizado con parámetros de estabilidad (`pio=1 qos=0`).
+### Sistema (bspwm + sxhkd)
+* **Terminal:** `Super + Enter`. [cite: 2026-02-19]
+* **Cerrar Ventana:** `Super + w`. [cite: 2026-02-19]
+* **Cambiar Escritorio:** `Super + [1-9]`. [cite: 2026-02-19]
+* **Reiniciar WM:** `Super + Alt + r`. [cite: 2026-02-19]
 
-### Fase 2: Blindaje de Persistencia (Anti-Amnesia)
-* **El Problema:** El Wi-Fi funciona en la sesión actual pero desaparece al reiniciar.
-* **La Causa:** Directivas `blacklist b43` ocultas en `/etc/modprobe.d/` y falta de carga temprana en `systemd` [cite: 2026-02-13].
-* **La Solución:** Auditoría y purga de listas negras mediante scripts automáticos y registro del módulo en `modules-load.d` [cite: 2026-02-13].
+## 🎯 Funciones de Auditoría (Target System)
+* `settarget <IP> <Nombre>`: Define el objetivo en la Polybar. [cite: 2026-02-15, 2026-02-19]
+* `cleartarget`: Elimina el objetivo de la barra. [cite: 2026-02-19]
+* **Interacción Polybar:** Click izquierdo para borrar, click derecho para copiar IP. [cite: 2026-02-19]
 
-### Fase 3: Entorno Gráfico Minimalista
-* **Arquitectura:** i3wm (Window Manager) + Polybar (Estado) + Picom (Compositor).
-* **Optimización:** Uso de backend `glx` en Picom para delegar el dibujado a la GPU del MacBook, eliminando el uso innecesario de CPU.
-
----
-
-## 🛠️ Registro de Troubleshooting (Depuración)
-
-| Error Detectado | Causa Raíz | Solución Técnica |
-| :--- | :--- | :--- |
-| **Interfaz wlan0 ausente** | Blacklist activa en el kernel | `sed -i` para comentar bloqueos en `/etc/modprobe.d/` [cite: 2026-02-13] |
-| **Carga manual necesaria** | Módulo no indexado en el arranque | Creación de `/etc/modules-load.d/b43.conf` [cite: 2026-02-13] |
-| **Screen Tearing** | Backend xrender insuficiente | Migración a Backend `glx` con VSync activo |
-| **Iconos rotos** | Falta de glifos en sistema | Instalación de `Hack Nerd Font` y configuración en Kitty/Polybar |
-
----
-
-## 🚀 Guía de Despliegue (Instrucciones)
-
-> **Importante:** Estos comandos están diseñados para ser ejecutados en una instalación limpia.
-
-### 1. Clonar e Inicializar
-```bash
-git clone [https://github.com/Dnk29k/DebianMacbook.git](https://github.com/Dnk29k/DebianMacbook.git)
-cd DebianMacbook
-
-
-2. Ejecutar Setup de Sistema
-
-Instala dependencias, repositorios non-free y entorno gráfico:
-
-chmod +x scripts/setup.sh
-./scripts/setup.sh
-
-3. Aplicar Blindaje de Hardware
-
-Este paso es obligatorio para garantizar que el Wi-Fi sobreviva al reinicio [cite: 2026-02-13]:
-
-chmod +x scripts/post-install.sh
-./scripts/post-install.sh
-
-⚙️ Decisiones Técnicas Destacadas
-
-    Persistencia b43: Se forzó la carga del módulo mediante systemd para asegurar que el hardware esté disponible antes de que NetworkManager inicie el escaneo.
-
-    Kitty Terminal: Configurada con aceleración por hardware (GPU) y tipografía Hack Nerd Font para una experiencia fluida y con soporte total de iconos.
-
-    Clean Blacklist: El script de post-instalación realiza una limpieza profunda de cualquier archivo que intente silenciar la antena Broadcom [cite: 2026-02-13].
-
-
-
+## 🩹 Soluciones a Problemas (Fixes)
+* **BurpSuite:** Symlink manual en `/usr/local/bin/burpsuite` apuntando a `/opt/BurpSuiteCommunity/`. [cite: 2026-02-15]
+* **Root Sync:** La `.zshrc` de root apunta a la de `dnk29` para mantener alias y funciones. [cite: 2026-02-15]

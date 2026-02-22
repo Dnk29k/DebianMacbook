@@ -1,33 +1,24 @@
-# 💻 MacBook Pro Debian 12 - Setup de Auditoría
+# 💻 MacBook-Debian 12: Entorno de Auditoría
+Repositorio de configuración optimizado para MacBook Pro con Debian 12 (Bookworm), enfocado en ciberseguridad y personalización estética.
 
-Este repositorio contiene la configuración optimizada para mi MacBook Pro con Debian 12, enfocado en ciberseguridad y productividad. [cite: 2026-02-14, 2026-02-16]
+## 🚀 Configuración de Red e Interfaz
+El sistema utiliza **Polybar** con iconos de **Nerd Fonts** para feedback visual inmediato del estado de las interfaces:
+- **WiFi:** `wlan0` (Driver b43 optimizado).
+- **Ethernet:** `enp3s0`.
+- **Status:** Lógica `format-disconnected` implementada para monitorización en tiempo real.
 
-## 🛠️ Especificaciones de Hardware y Red
-* **Dispositivo:** MacBook Pro 2010. [cite: 2026-02-16]
-* **Interfaz WiFi:** `wlan0`. [cite: 2026-02-17]
-* **Interfaz Ethernet:** `enp3s0`. [cite: 2026-02-17]
-* **Compositor:** `picom` (necesario para transparencias en Polybar). [cite: 2026-02-15]
+## 🎯 Workflow de Auditoría (Target to Hack)
+Sistema automatizado para visualizar el objetivo actual en la Polybar.
+- `settarget <IP> <Nombre>`: Establece el objetivo (escribe en `~/.config/bin/target`).
+- `cleartarget`: Limpia el objetivo actual.
+- **Script de visualización:** `target_to_hack.sh` procesa los datos y aplica colores Neón (Rojo/Blanco).
 
-## ⌨️ Guía de Atajos (Cheat Sheet)
+## 🔧 Fixes Importantes Aplicados
+- **Burp Suite:** Symlink manual creado en `/usr/local/bin/burpsuite` -> `/opt/BurpSuiteCommunity/`.
+- **Sincronización de Root:** La `.zshrc` de `root` apunta mediante un link a la de `dnk29`, permitiendo compartir alias y funciones de auditoría.
+- **Network Blacklist:** Gestión de módulos para evitar conflictos con el driver `b43`.
 
-### Neovim (NvChad v0.11.6)
-* **Abrir editor:** Comando `v` (alias de `nvim`). [cite: 2026-02-15, 2026-02-19]
-* **Explorador de archivos:** `Ctrl + n`. [cite: 2026-02-19]
-* **Buscador (Telescope):** `Espacio + f + f`. [cite: 2026-02-19]
-* **Terminal flotante:** `Alt + i`. [cite: 2026-02-19]
-* **Temas:** `Espacio + t + h`. [cite: 2026-02-19]
-
-### Sistema (bspwm + sxhkd)
-* **Terminal:** `Super + Enter`. [cite: 2026-02-19]
-* **Cerrar Ventana:** `Super + w`. [cite: 2026-02-19]
-* **Cambiar Escritorio:** `Super + [1-9]`. [cite: 2026-02-19]
-* **Reiniciar WM:** `Super + Alt + r`. [cite: 2026-02-19]
-
-## 🎯 Funciones de Auditoría (Target System)
-* `settarget <IP> <Nombre>`: Define el objetivo en la Polybar. [cite: 2026-02-15, 2026-02-19]
-* `cleartarget`: Elimina el objetivo de la barra. [cite: 2026-02-19]
-* **Interacción Polybar:** Click izquierdo para borrar, click derecho para copiar IP. [cite: 2026-02-19]
-
-## 🩹 Soluciones a Problemas (Fixes)
-* **BurpSuite:** Symlink manual en `/usr/local/bin/burpsuite` apuntando a `/opt/BurpSuiteCommunity/`. [cite: 2026-02-15]
-* **Root Sync:** La `.zshrc` de root apunta a la de `dnk29` para mantener alias y funciones. [cite: 2026-02-15]
+## ⌨️ Comandos Rápidos
+- `v`: Alias para Neovim.
+- `ls`: Configurado con `lsd` para iconos.
+- **Gestor de Ventanas:** `bspwm` + `sxhkd` (Configuración de teclas en el repo).

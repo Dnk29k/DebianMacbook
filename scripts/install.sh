@@ -1,74 +1,97 @@
 #!/bin/bash
 
-# --- Colores ---
+# --- Definición de Colores ---
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-NC='\033[0m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
 
-echo -e "${BLUE}
-  __  __            ____             _      _    _               
- |  \/  |          |  _ \           | |    | |  | |              
- | \  / | __ _  ___| |_) | ___   ___| | __ | |  | | _ __    ___  
- | |\/| |/ _` |/ __|  _ < / _ \ / _ \ |/ / | |  | || '_ \  / _ \ 
- | |  | | (_| | (__| |_) | (_) | (_) |   <  | |__| || |_) || (_) |
- |_|  |_|\__,_|\___|____/ \___/ \___/|_|\_\  \____/ | .__/  \___/ 
-                                                    | |          
-                                                    |_|          
-${NC}"
+# --- Banner de Inicio ---
+clear
+echo -e "${BLUE}"
+echo "  __  __            ____             _      _    _               "
+echo " |  \/  |          |  _ \           | |    | |  | |              "
+echo " | \  / | __ _  ___| |_) | ___   ___| | __ | |  | | _ __    ___  "
+echo " | |\/| |/ _` |/ __|  _ < / _ \ / _ \ |/ / | |  | || '_ \  / _ \ "
+echo " | |  | | (_| | (__| |_) | (_) | (_) |   <  | |__| || |_) || (_) |"
+echo " |_|  |_|\__,_|\___|____/ \___/ \___/|_|\_\  \____/ | .__/  \___/ "
+echo "                                                    | |          "
+echo "                                                    |_|          "
+echo -e "${NC}"
+echo -e "${YELLOW}[*] Iniciando despliegue del ecosistema MacBook-Debian...${NC}"
 
-echo -e "${YELLOW}[*] Iniciando instalación profesional del entorno...${NC}"
+# 1. Comprobación de privilegios
+if [ "$EUID" -eq 0 ]; then 
+    echo -e "${RED}[!] No ejecutes este script como root (usa sudo dentro del script)${NC}"
+    exit 1
+fi
 
-# 1. Dependencias del Sistema
-echo -e "${GREEN}[+] Instalando paquetes base y herramientas de sistema...${NC}"
+# 2. Instalación de Dependencias Críticas
+echo -e "${GREEN}[+] Actualizando repositorios e instalando herramientas...${NC}"
 sudo apt update
 sudo apt install -y bspwm sxhkd polybar zsh neovim lsd feh kitty \
-                    build-essential git awk unzip tlp mbpfan fzf picom rofi
+                    build-essential git awk unzip tlp mbpfan fzf picom rofi \
+                    libxcb-xinerama0-dev libxcb-icccm4-dev libxcb-image0-dev \
+                    libxcb-randr0-dev libxcb-util0-dev libxcb-keysyms1-dev \
+                    libxcb-shape0-dev
 
-# 2. Gestión de Hardware (MacBook)
-echo -e "${GREEN}[+] Activando optimización de batería y ventiladores...${NC}"
+# 3. Optimización de Hardware MacBook
+echo -e "${GREEN}[+] Configurando gestión térmica y de batería...${NC}"
 sudo systemctl enable tlp
 sudo systemctl enable mbpfan
 
-# 3. Despliegue de Configuraciones (.config)
-echo -e "${GREEN}[+] Sincronizando dotfiles desde .config/...${NC}"
+# 4. Despliegue de Configuraciones (.config)
+echo -e "${GREEN}[+] Sincronizando dotfiles desde el repositorio...${NC}"
 mkdir -p ~/.config
-# Copia todo el contenido de la carpeta .config del repo a la del sistema
-cp -rf .config/* ~/.config/
-cp .zshrc ~/
+
+# Copia masiva de carpetas de configuración
+if [ -d ".config" ]; then
+    cp -rf .config/* ~/.config/
+    echo -e "${GREEN}[✔] Carpetas de configuración sincronizadas.${NC}"
+else
+    echo -e "${RED}[!] Error: No se encuentra la carpeta .config en el repo.${NC}"
+fi
+
+# Copia de archivos de usuario
+cp .zshrc ~/ 2>/dev/null
 cp .gitconfig ~/ 2>/dev/null
 
-# 4. Fix: Sincronización con Root
-echo -e "${GREEN}[+] Vinculando entorno de Root con usuario dnk29...${NC}"
-sudo ln -sf /home/dnk29/.zshrc /root/.zshrc
+# 5. Persistencia de Configuración para Root
+echo -e "${GREEN}[+] Enlazando configuración de Zsh para el usuario Root...${NC}"
+sudo ln -sf /home/$(whoami)/.zshrc /root/.zshrc
 
-# 5. Fix: Symlink de BurpSuite
-echo -e "${GREEN}[+] Configurando acceso global a BurpSuite...${NC}"
-if [ -d "/opt/BurpSuiteCommunity" ]; then
-    sudo ln -sf /opt/BurpSuiteCommunity/BurpSuiteCommunity /usr/local/bin/burpsuite
-    echo -e "${GREEN}[✔] Comando 'burpsuite' habilitado.${NC}"
+# 6. Fix de Burp Suite
+echo -e "${GREEN}[+] Verificando instalación de Burp Suite...${NC}"
+BURP_PATH="/opt/BurpSuiteCommunity/BurpSuiteCommunity"
+if [ -f "$BURP_PATH" ]; then
+    sudo ln -sf "$BURP_PATH" /usr/local/bin/burpsuite
+    echo -e "${GREEN}[✔] Simlink de Burp Suite creado.${NC}"
 else
-    echo -e "${YELLOW}[!] BurpSuite no detectado en /opt. Omite este paso.${NC}"
+    echo -e "${YELLOW}[!] Burp Suite no encontrado en $BURP_PATH. Instálalo manualmente.${NC}"
 fi
 
-# 6. Instalación de Nerd Fonts
-echo -e "${GREEN}[+] Instalando Hack Nerd Font para iconos...${NC}"
-if [ ! -d "$HOME/.local/share/fonts/Hack" ]; then
+# 7. Instalación Automática de Nerd Fonts (Hack)
+echo -e "${GREEN}[+] Configurando tipografía e iconos (Nerd Fonts)...${NC}"
+FONT_DIR="$HOME/.local/share/fonts/Hack"
+if [ ! -d "$FONT_DIR" ]; then
     mkdir -p ~/.local/share/fonts
-    cd /tmp
-    wget https://github.com/ryanoasis/nerd-fonts/releases/download/v3.1.1/Hack.zip
-    unzip -o Hack.zip -d ~/.local/share/fonts
-    fc-cache -fv
-    cd -
+    wget -q --show-progress https://github.com/ryanoasis/nerd-fonts/releases/download/v3.1.1/Hack.zip -O /tmp/Hack.zip
+    unzip -oq /tmp/Hack.zip -d ~/.local/share/fonts
+    fc-cache -fv > /dev/null
+    echo -e "${GREEN}[✔] Nerd Fonts instaladas.${NC}"
 else
-    echo -e "${GREEN}[✔] Fuentes ya instaladas.${NC}"
+    echo -e "${GREEN}[✔] Nerd Fonts ya presentes en el sistema.${NC}"
 fi
 
-# 7. Permisos de Ejecución
-echo -e "${GREEN}[+] Aplicando permisos a scripts...${NC}"
-chmod +x ~/.config/bspwm/scripts/*
-chmod +x ~/.config/polybar/launch.sh
-chmod +x ~/.config/bin/*
+# 8. Ajuste de Permisos de Ejecución
+echo -e "${GREEN}[+] Otorgando permisos de ejecución a los scripts...${NC}"
+chmod +x ~/.config/bspwm/scripts/* 2>/dev/null
+chmod +x ~/.config/polybar/launch.sh 2>/dev/null
+chmod +x ~/.config/bin/* 2>/dev/null
 
-echo -e "${BLUE}[✔] ¡Instalación completada con éxito!${NC}"
-echo -e "${YELLOW}[!] Reinicia la sesión para ver todos los cambios.${NC}"
+# --- Finalización ---
+echo -e "${BLUE}--------------------------------------------------${NC}"
+echo -e "${GREEN}[✔] ¡Entorno configurado con éxito!${NC}"
+echo -e "${YELLOW}[!] Por favor, cierra sesión y vuelve a entrar.${NC}"
+echo -e "${BLUE}--------------------------------------------------${NC}"

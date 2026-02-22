@@ -41,5 +41,19 @@ echo -e "${GREEN}[+] Aplicando permisos de ejecución a los scripts...${NC}"
 chmod +x ~/.config/bspwm/scripts/*
 chmod +x ~/.config/polybar/launch.sh
 
-# 7. Finalización
+# 8. Instalación de Nerd Fonts (Iconos para Polybar)
+echo -e "${GREEN}[+] Instalando Nerd Fonts (Hack) para los iconos...${NC}"
+mkdir -p ~/.local/share/fonts
+cd /tmp
+# Descargamos la fuente Hack Nerd Font (es la que mejor suele ir con Polybar)
+wget https://github.com/ryanoasis/nerd-fonts/releases/download/v3.1.1/Hack.zip
+# Necesitamos 'unzip', lo instalamos por si acaso
+sudo apt install -y unzip
+unzip Hack.zip -d ~/.local/share/fonts
+# Actualizamos la caché de fuentes del sistema
+fc-cache -fv
+echo -e "${GREEN}[✔] Fuentes instaladas correctamente.${NC}"
+cd ~/DebianMacbook
+
+# 9. Finalización
 echo -e "${YELLOW}[*] Instalación completada. Reinicia bspwm o la terminal.${NC}"

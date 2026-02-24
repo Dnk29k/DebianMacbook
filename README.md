@@ -15,6 +15,7 @@ Este sistema implementa capas de seguridad que van más allá del software tradi
 * **Physical Key Lock (SD-AUTH):** El arranque del sistema está condicionado a la presencia de una tarjeta SD autorizada. Si el UUID no coincide al inicio, el sistema ejecuta un `poweroff` inmediato antes de exponer cualquier dato o pantalla de login.
 * **Panic Button (Nuke Script):** Comando integrado para la destrucción rápida de sesiones, historial de terminal y archivos temporales de auditoría mediante sobreescritura `shred`.
 * **Encrypted Workflow:** Preparado para el manejo de herramientas de pentesting sin dejar rastro en el almacenamiento local.
+
 ## 🛠️ Arsenal de Comandos y Protocolos OPSEC
 
 Este sistema no es una instalación estándar de Debian; es una estación fortificada. A continuación, los protocolos integrados:
@@ -43,6 +44,11 @@ Este sistema no es una instalación estándar de Debian; es una estación fortif
 **Identidad de Capa 2.**
 * **¿Qué es?**: Cambio aleatorio de la dirección MAC de `wlan0` y `enp3s0` mediante NetworkManager.
 * **¿Cuándo usarlo?**: Siempre activo. Cada vez que te conectes a una red (pública o privada), tu MacBook se identificará con una dirección física distinta, haciendo imposible el rastreo de tu dispositivo por hardware.
+
+### 🛠️ Notas de Instalación de Herramientas
+* **Burp Suite**: Instalado en `/opt/BurpSuiteCommunity/`. Se requiere un symlink manual para ejecución global:
+  `sudo ln -s /opt/BurpSuiteCommunity/BurpSuiteCommunity /usr/local/bin/burpsuite`
+  (Gestionado automáticamente por `install_tools.sh`).
 
 ## ⚙️ Especificaciones del Entorno
 

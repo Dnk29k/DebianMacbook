@@ -15,6 +15,34 @@ Este sistema implementa capas de seguridad que van más allá del software tradi
 * **Physical Key Lock (SD-AUTH):** El arranque del sistema está condicionado a la presencia de una tarjeta SD autorizada. Si el UUID no coincide al inicio, el sistema ejecuta un `poweroff` inmediato antes de exponer cualquier dato o pantalla de login.
 * **Panic Button (Nuke Script):** Comando integrado para la destrucción rápida de sesiones, historial de terminal y archivos temporales de auditoría mediante sobreescritura `shred`.
 * **Encrypted Workflow:** Preparado para el manejo de herramientas de pentesting sin dejar rastro en el almacenamiento local.
+## 🛠️ Arsenal de Comandos y Protocolos OPSEC
+
+Este sistema no es una instalación estándar de Debian; es una estación fortificada. A continuación, los protocolos integrados:
+
+### 🛡️ 1. Killswitch Táctico (`vpn_lock.sh`)
+**El Escudo de Identidad.**
+* **¿Qué es?**: Un cortafuegos estricto basado en `ufw` que bloquea todo tráfico que no pase por el túnel seguro (`tun0`).
+* **¿Cuándo usarlo?**: **Obligatorio** antes de iniciar cualquier auditoría con OpenVPN (HackTheBox, TryHackMe, Clientes).
+* **Comandos**:
+    * `vpn-on`: Cierra el perímetro. Si la VPN se cae, internet se corta totalmente. Tu IP real nunca se filtrará.
+    * `vpn-off`: Abre el perímetro para navegación normal y actualizaciones de sistema.
+
+### 🔑 2. Llave Física de Arranque (`check_key.sh`)
+**El Control de Acceso Físico.**
+* **¿Qué es?**: Un servicio de Systemd que valida el UUID de una tarjeta SD específica durante el boot.
+* **¿Cuándo usarlo?**: Se activa automáticamente. Sin la tarjeta SD insertada, el MacBook se apaga antes de llegar al login.
+* **Protocolo**: Ideal para evitar que alguien ajeno encienda tu equipo. Una vez que el sistema ha arrancado, puedes retirar la tarjeta si necesitas el puerto.
+
+### 🥷 3. Modo Fantasma en Terminal (ZSH Stealth)
+**Protección de Evidencias Locales.**
+* **¿Qué es?**: Configuración avanzada de `zsh` que ignora comandos sensibles.
+* **¿Cómo usarlo?**: Simplemente añade un **espacio en blanco** antes de cualquier comando que contenga contraseñas, IPs o datos privados.
+    * *Ejemplo*: ` nmap -sV 10.10.10.5` (Este comando NO aparecerá en tu historial al pulsar la flecha arriba ni en el archivo `.zsh_history`).
+
+### 🎭 4. Ofuscación de Hardware (MAC Spoofing)
+**Identidad de Capa 2.**
+* **¿Qué es?**: Cambio aleatorio de la dirección MAC de `wlan0` y `enp3s0` mediante NetworkManager.
+* **¿Cuándo usarlo?**: Siempre activo. Cada vez que te conectes a una red (pública o privada), tu MacBook se identificará con una dirección física distinta, haciendo imposible el rastreo de tu dispositivo por hardware.
 
 ## ⚙️ Especificaciones del Entorno
 

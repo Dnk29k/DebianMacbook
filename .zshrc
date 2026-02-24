@@ -55,6 +55,10 @@ alias vpn-ch='nordvpn connect Spain' # O el país que prefieras
 # Nvim
 alias v='nvim'
 
+# VPN Kill 
+alias vpn-on='sudo ~/DebianMacbook/.config/bin/vpn_lock.sh on'
+alias vpn-off='sudo ~/DebianMacbook/.config/bin/vpn_lock.sh off'
+
 # Hitory
 HISTFILE=~/.zsh_history
 HISTSIZE=10000

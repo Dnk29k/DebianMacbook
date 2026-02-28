@@ -53,7 +53,7 @@ alias vpn-off='nordvpn disconnect'
 alias vpn-ch='nordvpn connect Spain' # O el país que prefieras
 
 # Nvim
-alias v='nvim'
+alias nv='nvim'
 
 # VPN Kill 
 alias vpn-on='sudo ~/DebianMacbook/.config/bin/vpn_lock.sh on'

@@ -86,3 +86,7 @@ Nota: El binario original de updatedb se movió a /usr/bin/updatedb.real para ev
 
 * **Neovim**: Versión 0.10+ (AppImage) vinculada globalmente. Configuración compartida con Root vía enlaces simbólicos.
 * **Updatedb**: Wrapper de seguridad para evitar errores de permisos en sistemas FUSE.
+
+### 🎨 UI & Security
+- **Rofi**: Temas personalizados incluidos en `config/rofi/themes`.
+- **Bloqueo**: Gestionado por `i3lock-fancy` vía sxhkd.

@@ -80,3 +80,4 @@ chmod +x install.sh
 ### 📺 Optimización de Vídeo
 * **h264ify**: Extensión obligatoria para forzar códecs compatibles con la GPU Nvidia MCP89.
 * **mpv + yt-dlp**: Método recomendado para ver streaming sin carga de CPU.
+Nota: El binario original de updatedb se movió a /usr/bin/updatedb.real para evitar conflictos con FUSE.

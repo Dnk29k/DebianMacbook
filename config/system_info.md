@@ -8,3 +8,7 @@
 ## 🛡️ Herramientas
 - **BurpSuite**: Fix de symlink manual.
   - Comando: sudo ln -sf /opt/BurpSuiteCommunity/BurpSuiteCommunity /usr/local/bin/burpsuite
+
+### 🆘 Plan B Certificado Burp
+- Si http://burp falla, usar http://127.0.0.1:8080
+- Si sigue fallando, exportar DER desde Proxy > Proxy Settings > Import/Export CA.

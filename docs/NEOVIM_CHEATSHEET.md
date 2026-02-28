@@ -25,3 +25,4 @@
 - `<leader> h`: Abrir terminal horizontal.
 - `<leader> v`: Abrir terminal vertical.
 - `Esc` (en terminal): Volver al modo normal.
+- `./setup_env.sh`: Reinstalar todo mi entorno de Rofi, sxhkd y temas.

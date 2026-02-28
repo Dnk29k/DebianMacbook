@@ -72,3 +72,7 @@ chmod +x install.sh
 
 # 3. Ejecutar el despliegue automático
 ./install.sh
+
+### 📺 Optimización de Vídeo
+* **h264ify**: Extensión obligatoria para forzar códecs compatibles con la GPU Nvidia MCP89.
+* **mpv + yt-dlp**: Método recomendado para ver streaming sin carga de CPU.

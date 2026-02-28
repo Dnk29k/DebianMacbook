@@ -12,3 +12,4 @@ else
 fi
 
 # Aquí añadiremos más herramientas en el futuro
+sudo mkdir -p /root/.config && sudo ln -sf /home/dnk29/.config/nvim /root/.config/nvim

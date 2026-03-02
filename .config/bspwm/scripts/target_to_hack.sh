@@ -1,6 +1,6 @@
 #!/bin/bash
 
-TARGET_FILE="/home/dnk29/.config/bin/target"
+TARGET_FILE="$HOME/.config/bin/target"
 [ ! -f "$TARGET_FILE" ] && touch "$TARGET_FILE" 2>/dev/null
 
 ip_address=$(awk '{print $1}' "$TARGET_FILE" 2>/dev/null)

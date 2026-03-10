@@ -113,7 +113,7 @@ function settarget(){
     fi
     # Primero creamos la carpeta por si acaso no existe
     mkdir -p "$HOME/.config/bin"
-    
+
     # Escribimos la IP y el Nombre directamente al archivo
     echo "$1 $2" > "$HOME/.config/bin/target"
     echo "Target fijado: $1 - $2"

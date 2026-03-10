@@ -106,20 +106,25 @@ alias htbcon='sudo openvpn $HOME/ovpn/dnk29.ovpn'
 alias htbdes='sudo killall openvpn'
 
 # --- FUNCIONES DE AUDITORÍA (Target para Polybar) ---
-# Estas funciones alimentan el módulo 'target_island' de tu current.ini
 function settarget(){
     if [ $# -ne 2 ]; then
         echo "Uso: settarget <IP> <NOMBRE>"
         return 1
     fi
-    # Asegúrate de que esta carpeta exista en tu repo: ~/.config/bin/
-    echo "$1 $2" > TARGET_FILE=$HOME/.config/bin/target
+    # Primero creamos la carpeta por si acaso no existe
+    mkdir -p "$HOME/.config/bin"
+    
+    # Escribimos la IP y el Nombre directamente al archivo
+    echo "$1 $2" > "$HOME/.config/bin/target"
+    echo "Target fijado: $1 - $2"
 }
 
 function cleartarget(){
-    echo '' > TARGET_FILE=$HOME/.config/bin/target
+    echo '' > "$HOME/.config/bin/target"
     echo "Target eliminado."
 }
+
+alias target='cat $HOME/.config/bin/target | awk "{print \$1}"'
 
 # --- AUTOSTART BSPWM (Optimizado para MacBook) ---
 if [[ -z $DISPLAY && $XDG_VTNR -eq 1 ]]; then

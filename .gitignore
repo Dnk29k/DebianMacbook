@@ -1,1 +1,18 @@
+# Archivos de claves existentes
 .config/bin/.key_data
+
+# Seguridad y Secretos (NUNCA subir estos)
+secrets.env
+*.ovpn
+.ssh/id_*
+auth.log
+
+# Sincronización y Notas (Ya van por Syncthing)
+Notas_Hacking/
+.obsidian/
+workspace.json
+*.sync-conflict-*
+
+# Temporales de Sistema
+.DS_Store
+*.tmp

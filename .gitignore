@@ -16,3 +16,21 @@ workspace.json
 # Temporales de Sistema
 .DS_Store
 *.tmp
+# Secretos y Tokens
+*.token
+*.key
+.env
+
+# Logs y Temporales
+*.log
+*.tmp
+lazy-lock.json
+.DS_Store
+
+# Capturas de Red (Seguridad)
+*.pcap
+*.cap
+hosts_backup
+
+# Obsidian y Notas privadas
+.obsidian/

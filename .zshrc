@@ -187,8 +187,8 @@ export OLLAMA_NUM_GPU_LAYERS=0
 export OLLAMA_DEBUG=0
 
 # Claude Code apunta a Ollama local
-export ANTHROPIC_BASE_URL="http://localhost:11434/v1"
-export ANTHROPIC_MODEL="kimi-k2.5:cloud"
+#export ANTHROPIC_BASE_URL="http://localhost:11434/v1"
+#export ANTHROPIC_MODEL="kimi-k2.5:cloud"
 
 # Función para lanzar el agente en el directorio actual
 agent() {

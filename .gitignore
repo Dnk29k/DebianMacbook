@@ -1,13 +1,19 @@
-# Archivos de claves existentes
+# Secretos y Tokens — NUNCA subir al repo
+*.key
+*.token
+.env
+secrets.env
+config/systemd/key_data
 .config/bin/.key_data
 
-# Seguridad y Secretos (NUNCA subir estos)
-secrets.env
+# Seguridad y Credenciales
 *.ovpn
 .ssh/id_*
 auth.log
+*.pcap
+*.cap
 
-# Sincronización y Notas (Ya van por Syncthing)
+# Sincronización y Notas (ya van por Syncthing)
 Notas_Hacking/
 .obsidian/
 workspace.json
@@ -16,21 +22,8 @@ workspace.json
 # Temporales de Sistema
 .DS_Store
 *.tmp
-# Secretos y Tokens
-*.token
-*.key
-.env
-
-# Logs y Temporales
 *.log
-*.tmp
 lazy-lock.json
-.DS_Store
 
-# Capturas de Red (Seguridad)
-*.pcap
-*.cap
+# Backups locales
 hosts_backup
-
-# Obsidian y Notas privadas
-.obsidian/

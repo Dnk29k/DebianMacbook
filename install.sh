@@ -1,9 +1,11 @@
+```bash
 #!/bin/bash
 # =============================================================
-#  MacBook-Debian — Tactical Workstation Deployment v4.0
-#  Corregido y actualizado — 2026-04-26
+#  MacBook-Debian — Tactical Workstation Deployment v4.2
+#  SSD Migration Ready + SD-AUTH Bypass Support — 2026-04
 #  Stack: Debian 12 + bspwm + picom + polybar + kitty + zsh
-#         + Ollama + Kimi-K2.5 + Claude Code
+#         + Ollama + Kimi-K2.5 + Claude Code + SD-AUTH
+#  Usage: sudo bash install.sh [--skip-sd-auth]
 # =============================================================
 
 set -euo pipefail
@@ -23,6 +25,15 @@ REAL_USER=${SUDO_USER:-$USER}
 REAL_HOME=$(getent passwd "$REAL_USER" | cut -d: -f6)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# --- Parse flags (SD-AUTH bypass para migración) ---
+SKIP_SD_AUTH=0
+for arg in "$@"; do
+  case $arg in
+    --skip-sd-auth) SKIP_SD_AUTH=1; shift ;;
+    *) echo -e "${RED}[!] Flag desconocido: $arg${NC}"; exit 1 ;;
+  esac
+done
+
 # --- Verificar que se ejecuta como root ---
 if [[ $EUID -ne 0 ]]; then
     echo -e "${RED}[!] Ejecuta con sudo: sudo bash install.sh${NC}"
@@ -40,9 +51,88 @@ cat << "EOF"
  ██║ ╚═╝ ██║██║  ██║╚██████╗██████╔╝╚██████╔╝╚██████╔╝██║  ██╗
  ╚═╝     ╚═╝╚═╝  ╚═╝ ╚═════╝╚═════╝  ╚═════╝  ╚═════╝╚═╝  ╚═╝
 EOF
-echo -e "${PURPLE}      --- MacBook Debian Tactical Workstation v4.0 ---${NC}"
+echo -e "${PURPLE}      --- MacBook Debian Tactical Workstation v4.2 ---${NC}"
 echo -e "${BLUE}[*] Usuario: ${YELLOW}${REAL_USER}${NC} → ${YELLOW}${REAL_HOME}${NC}"
-echo -e "${BLUE}[*] Repo:    ${YELLOW}${SCRIPT_DIR}${NC}\n"
+echo -e "${BLUE}[*] Repo:    ${YELLOW}${SCRIPT_DIR}${NC}"
+if [[ $SKIP_SD_AUTH -eq 1 ]]; then
+  echo -e "${YELLOW}[!] MODO MIGRACIÓN: SD-AUTH desactivado temporalmente${NC}"
+fi
+echo
+
+# =============================================================
+# FUNCIÓN: Gestionar SD-AUTH (nueva)
+# =============================================================
+manage_sd_auth() {
+    echo -e "${BLUE}[*] Configurando SD-AUTH...${NC}"
+
+    # Deploy del script de validación
+    if [[ -f "${SCRIPT_DIR}/config/systemd/check_key.sh" ]]; then
+        cp -v "${SCRIPT_DIR}/config/systemd/check_key.sh" /usr/local/bin/check_key.sh
+        chmod +x /usr/local/bin/check_key.sh
+        echo -e "${GREEN}  [✓] check_key.sh instalado${NC}"
+    fi
+
+    # Deploy del archivo de clave (si existe en el repo)
+    if [[ -f "${SCRIPT_DIR}/config/systemd/key_data" ]]; then
+        mkdir -p /usr/local/etc
+        cp -v "${SCRIPT_DIR}/config/systemd/key_data" /usr/local/etc/key_data
+        chmod 600 /usr/local/etc/key_data
+        echo -e "${GREEN}  [✓] key_data instalado (permisos 600)${NC}"
+    fi
+
+    # Deploy del servicio systemd
+    if [[ -f "${SCRIPT_DIR}/config/systemd/check_key.service" ]]; then
+        cp -v "${SCRIPT_DIR}/config/systemd/check_key.service" /etc/systemd/system/
+        systemctl daemon-reload
+
+        if [[ $SKIP_SD_AUTH -eq 1 ]]; then
+            # Modo migración: desactivar temporalmente
+            systemctl stop check_key.service 2>/dev/null || true
+            systemctl disable check_key.service 2>/dev/null || true
+            systemctl mask check_key.service 2>/dev/null || true
+            echo -e "${YELLOW}  [⚠] check_key.service desactivado (modo migración)${NC}"
+        else
+            # Modo normal: habilitar
+            systemctl enable check_key.service 2>/dev/null || true
+            echo -e "${GREEN}  [✓] check_key.service habilitado${NC}"
+        fi
+    fi
+}
+
+# =============================================================
+# FUNCIÓN: Optimizaciones para SSD (nueva)
+# =============================================================
+apply_ssd_optimizations() {
+    echo -e "${BLUE}[*] Aplicando optimizaciones para SSD...${NC}"
+
+    # 1. Habilitar TRIM semanal
+    if ! systemctl is-enabled fstrim.timer &>/dev/null; then
+        systemctl enable --now fstrim.timer
+        echo -e "${GREEN}  [✓] fstrim.timer activado${NC}"
+    fi
+
+    # 2. Ajustar swappiness para reducir escrituras en swap
+    if [[ ! -f /etc/sysctl.d/99-ssd.conf ]]; then
+        cat > /etc/sysctl.d/99-ssd.conf << 'EOF'
+# Optimizaciones para SSD - DebianMacbook
+vm.swappiness=10
+vm.vfs_cache_pressure=50
+EOF
+        sysctl -p /etc/sysctl.d/99-ssd.conf
+        echo -e "${GREEN}  [✓] Ajustes de VM aplicados${NC}"
+    fi
+
+    # 3. Optimizar fstab (solo si es instalación limpia)
+    if [[ -f /etc/fstab ]] && grep -q "ext4" /etc/fstab; then
+        if ! grep -q "noatime" /etc/fstab; then
+            cp /etc/fstab /etc/fstab.bak.$(date +%F)
+            sed -i 's/defaults/defaults,noatime/' /etc/fstab
+            echo -e "${GREEN}  [✓] noatime añadido a fstab${NC}"
+        fi
+    fi
+
+    echo -e "${GREEN}[✓] Optimizaciones SSD completadas${NC}"
+}
 
 # =============================================================
 # FUNCIÓN: Instalar dependencias base
@@ -71,6 +161,8 @@ install_deps() {
         xclip xdotool
         # Python (para scripts de automatización)
         python3 python3-pip python3-venv
+        # Utilidades para SD-AUTH y auditoría
+        uuid-runtime logrotate
     )
 
     echo -e "${BLUE}[*] Instalando paquetes base...${NC}"
@@ -92,7 +184,6 @@ install_kitty() {
     sudo -u "$REAL_USER" curl -L https://sw.kovidgoyal.net/kitty/installer.sh | \
         sudo -u "$REAL_USER" bash /dev/stdin launch=n
 
-    # Crear symlink en PATH
     ln -sf "$REAL_HOME/.local/kitty.app/bin/kitty" /usr/local/bin/kitty
     ln -sf "$REAL_HOME/.local/kitty.app/bin/kitten" /usr/local/bin/kitten
 
@@ -130,7 +221,6 @@ install_ollama() {
     echo -e "${BLUE}[*] Instalando Ollama...${NC}"
     curl -fsSL https://ollama.com/install.sh | bash
 
-    # Habilitar servicio
     systemctl enable ollama
     systemctl start ollama
 
@@ -191,28 +281,26 @@ backup_configs() {
 
 # =============================================================
 # FUNCIÓN: Copiar configuraciones
-# (Corregido: rutas relativas al repo, no hardcodeadas)
 # =============================================================
 deploy_configs() {
     echo -e "\n${BLUE}[*] Desplegando configuraciones...${NC}"
 
-    # Crear estructura de directorios
     mkdir -p "$REAL_HOME"/.config/{bspwm/scripts,sxhkd,polybar/scripts/themes,polybar/fonts,kitty,nvim,picom,bin}
     mkdir -p "$REAL_HOME"/{scripts,.local/bin,ovpn}
 
     # --- bspwm ---
-    if [[ -d "${SCRIPT_DIR}/.config/bspwm" ]]; then
-        cp -rv "${SCRIPT_DIR}/.config/bspwm/." "$REAL_HOME/.config/bspwm/"
+    if [[ -d "${SCRIPT_DIR}/config/bspwm" ]]; then
+        cp -rv "${SCRIPT_DIR}/config/bspwm/." "$REAL_HOME/.config/bspwm/"
     fi
 
     # --- sxhkd ---
-    if [[ -d "${SCRIPT_DIR}/.config/sxhkd" ]]; then
-        cp -rv "${SCRIPT_DIR}/.config/sxhkd/." "$REAL_HOME/.config/sxhkd/"
+    if [[ -d "${SCRIPT_DIR}/config/sxhkd" ]]; then
+        cp -rv "${SCRIPT_DIR}/config/sxhkd/." "$REAL_HOME/.config/sxhkd/"
     fi
 
     # --- polybar ---
-    if [[ -d "${SCRIPT_DIR}/.config/polybar" ]]; then
-        cp -rv "${SCRIPT_DIR}/.config/polybar/." "$REAL_HOME/.config/polybar/"
+    if [[ -d "${SCRIPT_DIR}/config/polybar" ]]; then
+        cp -rv "${SCRIPT_DIR}/config/polybar/." "$REAL_HOME/.config/polybar/"
     fi
 
     # --- kitty ---
@@ -225,15 +313,16 @@ deploy_configs() {
         cp -rv "${SCRIPT_DIR}/config/nvim/." "$REAL_HOME/.config/nvim/"
     fi
 
-    # --- zshrc (CORREGIDO: sin rutas hardcodeadas a /home/dnk29) ---
-    if [[ -f "${SCRIPT_DIR}/.zshrc" ]]; then
-        # Sustituir /home/dnk29 por el home real del usuario
-        sed "s|/home/dnk29|${REAL_HOME}|g" "${SCRIPT_DIR}/.zshrc" > "$REAL_HOME/.zshrc"
+    # --- zshrc ---
+    if [[ -f "${SCRIPT_DIR}/config/zshrc_backup" ]]; then
+        sed "s|/home/dnk29|${REAL_HOME}|g" "${SCRIPT_DIR}/config/zshrc_backup" > "$REAL_HOME/.zshrc"
         echo -e "${GREEN}  [✓] .zshrc desplegado (rutas adaptadas a ${REAL_USER})${NC}"
     fi
 
-    # --- bspwmrc (CORREGIDO: sustituir rutas hardcodeadas) ---
-    sed -i "s|/home/dnk29|${REAL_HOME}|g" "$REAL_HOME/.config/bspwm/bspwmrc" 2>/dev/null || true
+    # --- bspwmrc ---
+    if [[ -f "$REAL_HOME/.config/bspwm/bspwmrc" ]]; then
+        sed -i "s|/home/dnk29|${REAL_HOME}|g" "$REAL_HOME/.config/bspwm/bspwmrc" 2>/dev/null || true
+    fi
 
     # --- Scripts ---
     if [[ -d "${SCRIPT_DIR}/scripts" ]]; then
@@ -245,7 +334,6 @@ deploy_configs() {
         cp -v "${SCRIPT_DIR}/bin/phoenix-hud.sh" "$REAL_HOME/.local/bin/"
     fi
 
-    # --- target file (para polybar) ---
     touch "$REAL_HOME/.config/bin/target"
 
     echo -e "${GREEN}[✓] Configuraciones desplegadas.${NC}"
@@ -253,7 +341,6 @@ deploy_configs() {
 
 # =============================================================
 # FUNCIÓN: Configurar bspwmrc correctamente
-# (Corregido: elimina la regla que hace todo flotante)
 # =============================================================
 fix_bspwmrc() {
     local bspwmrc="$REAL_HOME/.config/bspwm/bspwmrc"
@@ -264,13 +351,8 @@ fix_bspwmrc() {
 
     echo -e "\n${BLUE}[*] Corrigiendo bspwmrc...${NC}"
 
-    # CORREGIDO: Eliminar la regla que hace TODAS las ventanas flotantes
     sed -i '/bspc rule -a "\*" -o state=floating/d' "$bspwmrc"
-
-    # CORREGIDO: Picom con config explícita
     sed -i 's|^picom &$|picom --config ~/.config/picom/picom.conf --daemon \&|' "$bspwmrc"
-
-    # CORREGIDO: Polybar con ruta dinámica
     sed -i "s|/home/dnk29/.config/polybar/launch.sh|${REAL_HOME}/.config/polybar/launch.sh|g" "$bspwmrc"
 
     echo -e "${GREEN}[✓] bspwmrc corregido.${NC}"
@@ -278,7 +360,6 @@ fix_bspwmrc() {
 
 # =============================================================
 # FUNCIÓN: Crear picom.conf optimizado para MacBook
-# (Nuevo: no estaba en el repo)
 # =============================================================
 deploy_picom() {
     local picom_conf="$REAL_HOME/.config/picom/picom.conf"
@@ -291,19 +372,12 @@ deploy_picom() {
     echo -e "\n${BLUE}[*] Creando picom.conf optimizado para MacBook...${NC}"
 
     cat > "$picom_conf" << 'PICOM'
-# picom.conf — MacBook Debian — Optimizado para hardware legacy
-# Backend xrender (estable en GPU NVIDIA 320M legacy)
-
 backend = "xrender";
 vsync = false;
 use-damage = true;
-
-# Esquinas — desactivadas (consume CPU en xrender)
 corner-radius = 0;
 rounded-corners-exclude = [];
 round-borders = 0;
-
-# Sombras — ligeras
 shadow = true;
 shadow-radius = 6;
 shadow-opacity = 0.35;
@@ -318,43 +392,32 @@ shadow-exclude = [
     "window_type = 'popup_menu'",
     "window_type = 'tooltip'"
 ];
-
-# Fading — desactivado (mejor rendimiento al cambiar workspace)
 fading = false;
-
-# Opacidad
 inactive-opacity = 1.0;
 active-opacity = 1.0;
 frame-opacity = 1.0;
 inactive-opacity-override = false;
-
 focus-exclude = [
     "class_g = 'Cairo-clock'",
     "class_g = 'slop'"
 ];
-
 opacity-rule = [
     "90:class_g = 'kitty' && focused",
     "75:class_g = 'kitty' && !focused",
     "95:class_g = 'Rofi'",
     "100:class_g = 'Polybar'"
 ];
-
-# Blur — desactivado (no funciona en xrender)
 blur-method = "none";
 blur-strength = 0;
 blur-background = false;
 blur-background-frame = false;
 blur-background-fixed = false;
-
 blur-background-exclude = [
     "window_type = 'dock'",
     "window_type = 'desktop'",
     "class_g = 'slop'",
     "_GTK_FRAME_EXTENTS"
 ];
-
-# General
 detect-rounded-corners = false;
 detect-client-opacity = true;
 detect-transient = true;
@@ -363,7 +426,6 @@ mark-wmwin-focused = true;
 mark-ovredir-focused = true;
 glx-copy-from-front = false;
 unredir-if-possible = false;
-
 wintypes:
 {
     tooltip = { fade = false; shadow = true; opacity = 0.9; focus = true; full-shadow = false; };
@@ -379,14 +441,12 @@ PICOM
 
 # =============================================================
 # FUNCIÓN: Configurar variables de entorno para Ollama/Claude
-# (Nuevo: no estaba en el repo)
 # =============================================================
 configure_ai_env() {
     echo -e "\n${BLUE}[*] Configurando variables de entorno para Ollama + Claude...${NC}"
 
     local zshrc="$REAL_HOME/.zshrc"
 
-    # Solo añadir si no existen ya
     if ! grep -q "OLLAMA_NUM_GPU_LAYERS" "$zshrc" 2>/dev/null; then
         cat >> "$zshrc" << 'AIENV'
 
@@ -410,7 +470,6 @@ AIENV
 deploy_hardware() {
     echo -e "\n${BLUE}[*] Configurando hardware MacBook...${NC}"
 
-    # mbpfan
     if [[ -f "${SCRIPT_DIR}/hardware/mbpfan.conf" ]]; then
         cp -v "${SCRIPT_DIR}/hardware/mbpfan.conf" /etc/mbpfan.conf
         systemctl enable --now mbpfan 2>/dev/null && \
@@ -418,14 +477,12 @@ deploy_hardware() {
             echo -e "${YELLOW}[!] mbpfan no disponible en este sistema.${NC}"
     fi
 
-    # CORREGIDO: Blacklist b43 solo en MacBook
     local product
     product=$(cat /sys/class/dmi/id/product_name 2>/dev/null || echo "unknown")
 
     if echo "$product" | grep -qi "macbook"; then
         echo -e "${BLUE}[*] MacBook detectado — configurando Wi-Fi Broadcom...${NC}"
 
-        # Evitar conflictos con wl
         cat > /etc/modprobe.d/b43-fix.conf << 'B43'
 # Fix Broadcom BCM4322 en MacBook
 blacklist wl
@@ -434,10 +491,7 @@ blacklist ssb
 options b43 pio=1 qos=0
 B43
 
-        # Forzar carga via systemd (persiste reinicios)
         echo "b43" > /etc/modules-load.d/b43.conf
-
-        # Regenerar initramfs
         update-initramfs -u 2>/dev/null && \
             echo -e "${GREEN}[✓] initramfs regenerado con b43.${NC}" || \
             echo -e "${YELLOW}[!] update-initramfs falló — hazlo manualmente.${NC}"
@@ -470,13 +524,11 @@ set_permissions() {
     chown -R "$REAL_USER":"$REAL_USER" "$REAL_HOME/scripts" 2>/dev/null || true
     chown -R "$REAL_USER":"$REAL_USER" "$REAL_HOME/.local" 2>/dev/null || true
 
-    # Scripts ejecutables
     find "$REAL_HOME/scripts" -name "*.sh" -exec chmod +x {} \; 2>/dev/null || true
     find "$REAL_HOME/.config/bspwm/scripts" -type f -exec chmod +x {} \; 2>/dev/null || true
     find "$REAL_HOME/.config/polybar" -name "*.sh" -exec chmod +x {} \; 2>/dev/null || true
     chmod +x "$REAL_HOME/.local/bin/phoenix-hud.sh" 2>/dev/null || true
 
-    # CORREGIDO: Ruta dinámica para .key_data (sin hardcodear DebianMacbook)
     if [[ -f "$REAL_HOME/.config/bin/.key_data" ]]; then
         chown root:root "$REAL_HOME/.config/bin/.key_data"
         chmod 600 "$REAL_HOME/.config/bin/.key_data"
@@ -491,10 +543,13 @@ set_permissions() {
 # =============================================================
 show_summary() {
     echo -e "\n${GREEN}╔══════════════════════════════════════════════════════╗"
-    echo -e "║         DESPLIEGUE COMPLETADO — v4.0                 ║"
+    echo -e "║         DESPLIEGUE COMPLETADO — v4.2                 ║"
     echo -e "╠══════════════════════════════════════════════════════╣"
     echo -e "║  Usuario:  ${YELLOW}${REAL_USER}${GREEN}                                    ║"
     echo -e "║  Home:     ${YELLOW}${REAL_HOME}${GREEN}                         ║"
+    if [[ $SKIP_SD_AUTH -eq 1 ]]; then
+        echo -e "║  ${YELLOW}[⚠] SD-AUTH desactivado — reactivar post-migración${GREEN}  ║"
+    fi
     echo -e "╠══════════════════════════════════════════════════════╣"
     echo -e "║  PASOS MANUALES PENDIENTES:                          ║"
     echo -e "║  1. Descarga el modelo:                              ║"
@@ -505,6 +560,9 @@ show_summary() {
     echo -e "║     ${YELLOW}nordvpn login${GREEN}                                     ║"
     echo -e "║  4. Coloca tu .ovpn en ~/ovpn/                       ║"
     echo -e "║  5. Reinicia la sesión o ejecuta: ${YELLOW}exec zsh${GREEN}           ║"
+    if [[ $SKIP_SD_AUTH -eq 1 ]]; then
+        echo -e "║  6. ${YELLOW}Reactivar SD-AUTH: sudo systemctl unmask check_key${GREEN} ║"
+    fi
     echo -e "╚══════════════════════════════════════════════════════╝${NC}\n"
 }
 
@@ -531,6 +589,8 @@ case "$install_mode" in
         deploy_picom
         configure_ai_env
         deploy_hardware
+        manage_sd_auth
+        apply_ssd_optimizations
         set_default_shell
         set_permissions
         ;;
@@ -540,6 +600,8 @@ case "$install_mode" in
         fix_bspwmrc
         deploy_picom
         configure_ai_env
+        manage_sd_auth
+        apply_ssd_optimizations
         set_permissions
         ;;
     3)
@@ -552,6 +614,7 @@ case "$install_mode" in
         ;;
     4)
         deploy_hardware
+        manage_sd_auth
         ;;
     *)
         echo -e "${RED}[!] Opción inválida.${NC}"

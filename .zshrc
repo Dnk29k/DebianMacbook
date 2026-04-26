@@ -1,154 +1,210 @@
-# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
-# Initialization code that may require console input (password prompts, [y/n]
-# confirmations, etc.) must go above this block; everything else may go below.
+# =============================================================
+#  .zshrc — MacBook Debian Tactical Workstation
+#  Limpio, sin duplicados, rutas portables con $HOME
+#  Actualizado: 2026-04-26
+# =============================================================
+
+# --- Powerlevel10k: instant prompt (debe ir al inicio) ---
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
-# Created by newuser for 5.9
-source /home/dnk29/powerlevel10k/powerlevel10k.zsh-theme
+# =============================================================
+# TEMA
+# =============================================================
+source "$HOME/powerlevel10k/powerlevel10k.zsh-theme"
 
-# ZSH AutoSuggestions Plugin
-if [ -f /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]; then
-	source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
-fi
+# =============================================================
+# PLUGINS ZSH
+# =============================================================
+[[ -f /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]] && \
+    source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 
-# ZSH Autocomplete Plugin
-#if [ -f /usr/share/zsh-autocomplete/zsh-autocomplete.plugin.zsh ]; then
-#	source /usr/share/zsh-autocomplete/zsh-autocomplete.plugin.zsh
-#fi
+[[ -f /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]] && \
+    source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
-# ZSH Autocomplete Plugin
-if [ -f /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]; then 
-	source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-fi
+[[ -f /usr/share/zsh-sudo/sudo.plugin.zsh ]] && \
+    source /usr/share/zsh-sudo/sudo.plugin.zsh
 
-# ZSH Sudo Plugin
-if [ -f /usr/share/zsh-sudo/sudo.plugin.zsh ]; then 
-	source /usr/share/zsh-sudo/sudo.plugin.zsh
-fi
-
-# Custom Aliases
-# -----------------------------------------------
-# bat
-alias cat='bat'
-alias catn='bat --style=plain'
-alias catnp='bat --style=plain --paging=never'
-
-# ls
-alias ll='lsd -lh --group-dirs=first'
-alias la='lsd -a --group-dirs=first'
-alias l='lsd --group-dirs=first'
-alias lla='lsd -lha --group-dirs=first'
-alias ls='lsd --group-dirs=first'
-
-# Alias para Hack The Box
-alias htbcon='sudo openvpn /home/dnk29/ovpn/dnk29.ovpn'
-alias htbdes='sudo killall openvpn'
-
-# Atajos rápidos para NordVPN
-alias vpn-stat='nordvpn status'
-alias vpn-on='nordvpn connect'
-alias vpn-off='nordvpn disconnect'
-alias vpn-ch='nordvpn connect Spain' # O el país que prefieras
-
-# Nvim
-alias v='nvim'
-
-# Hitory
+# =============================================================
+# HISTORIAL
+# =============================================================
 HISTFILE=~/.zsh_history
 HISTSIZE=10000
 SAVEHIST=10000
 setopt histignorealldups sharehistory
+# OPSEC: no guardar comandos con espacio inicial ni duplicados
+setopt HIST_IGNORE_SPACE
+setopt HIST_IGNORE_DUPS
+setopt HIST_IGNORE_ALL_DUPS
+setopt HIST_NO_STORE
 
-# Use modern completion system
+# =============================================================
+# COMPLETADO
+# =============================================================
 autoload -Uz compinit
 compinit
 
-zstyle ':completion:*' auto-description 'specify: %d'
+zstyle ':completion:*' auto-description 'especifica: %d'
 zstyle ':completion:*' completer _expand _complete _correct _approximate
-zstyle ':completion:*' format 'Completing %d'
+zstyle ':completion:*' format 'Completando %d'
 zstyle ':completion:*' group-name ''
 zstyle ':completion:*' menu select=2
 eval "$(dircolors -b)"
 zstyle ':completion:*:default' list-colors ${(s.:.)LS_COLORS}
 zstyle ':completion:*' list-colors ''
-zstyle ':completion:*' list-prompt %SAt %p: Hit TAB for more, or the character to insert%s
+zstyle ':completion:*' list-prompt '%SAt %p: TAB para más%s'
 zstyle ':completion:*' matcher-list '' 'm:{a-z}={A-Z}' 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=* l:|=*'
 zstyle ':completion:*' menu select=long
-zstyle ':completion:*' select-prompt %SScrolling active: current selection at %p%s
+zstyle ':completion:*' select-prompt '%SScrolling: selección en %p%s'
 zstyle ':completion:*' use-compctl false
 zstyle ':completion:*' verbose true
-
 zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#)*=0=01;31'
 zstyle ':completion:*:kill:*' command 'ps -u $USER -o pid,%cpu,tty,cputime,cmd'
 
-export LS_COLORS="rs=0:di=34:ln=36:mh=00:pi=40;33:so=35:do=35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=00:tw=30;42:ow=34;42:st=37;44:ex=32:*.tar=31:*.tgz=31:*.arc=31:*.arj=31:*.taz=31:*.lha=31:*.lz4=31:*.lzh=31:*.lzma=31:*.tlz=31:*.txz=31:*.tzo=31:*.t7z=31:*.zip=31:*.z=31:*.dz=31:*.gz=31:*.lrz=31:*.lz=31:*.lzo=31:*.xz=31:*.zst=31:*.tzst=31:*.bz2=31:*.bz=31:*.tbz=31:*.tbz2=31:*.tz=31:*.deb=31:*.rpm=31:*.jar=31:*.war=31:*.ear=31:*.sar=31:*.rar=31:*.alz=31:*.ace=31:*.zoo=31:*.cpio=31:*.7z=31:*.rz=31:*.cab=31:*.wim=31:*.swm=31:*.dwm=31:*.esd=31:*.avif=35:*.jpg=35:*.jpeg=35:*.mjpg=35:*.mjpeg=35:*.gif=35:*.bmp=35:*.pbm=35:*.pgm=35:*.ppm=35:*.tga=35:*.xbm=35:*.xpm=35:*.tif=35:*.tiff=35:*.png=35:*.svg=35:*.svgz=35:*.mng=35:*.pcx=35:*.mov=35:*.mpg=35:*.mpeg=35:*.m2v=35:*.mkv=35:*.webm=35:*.webp=35:*.ogm=35:*.mp4=35:*.m4v=35:*.mp4v=35:*.vob=35:*.qt=35:*.nuv=35:*.wmv=35:*.asf=35:*.rm=35:*.rmvb=35:*.flc=35:*.avi=35:*.fli=35:*.flv=35:*.gl=35:*.dl=35:*.xcf=35:*.xwd=35:*.yuv=35:*.cgm=35:*.emf=35:*.ogv=35:*.ogx=35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:*~=00;90:*#=00;90:*.bak=00;90:*.old=00;90:*.orig=00;90:*.part=00;90:*.rej=00;90:*.swp=00;90:*.tmp=00;90:*.dpkg-dist=00;90:*.dpkg-old=00;90:*.ucf-dist=00;90:*.ucf-new=00;90:*.ucf-old=00;90:*.rpmnew=00;90:*.rpmorig=00;90:*.rpmsave=00;90:"
+# =============================================================
+# PATH
+# =============================================================
+export PATH="$HOME/.local/bin:/opt/kitty/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games:/opt/nvim/nvim-linux-x86_64/bin"
 
-# --- CONFIGURACIÓN DE PATH ---
-# Incluimos /usr/local/bin para el symlink de BurpSuite que creamos
-export PATH="/opt/kitty/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games:/opt/nvim/nvim-linux-x86_64/bin:$HOME/.local/bin"
+# =============================================================
+# COLORES LS
+# =============================================================
+export LS_COLORS="rs=0:di=34:ln=36:mh=00:pi=40;33:so=35:do=35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=00:tw=30;42:ow=34;42:st=37;44:ex=32:*.tar=31:*.tgz=31:*.zip=31:*.gz=31:*.bz2=31:*.jpg=35:*.jpeg=35:*.png=35:*.gif=35:*.svg=35:*.mp4=35:*.mkv=35:*.mp3=36:*.flac=36:*.ogg=36:*.bak=00;90:*.tmp=00;90:*.log=00;90:"
 
-# --- ALIASES DE HACKING & SISTEMA ---
+# =============================================================
+# ALIASES — SISTEMA
+# =============================================================
+# bat (mejor cat)
 alias cat='bat'
-alias v='nvim'
-alias burpsuite='/usr/local/bin/burpsuite' # Asegura que llame al symlink de /opt/
+alias catn='bat --style=plain'
+alias catnp='bat --style=plain --paging=never'
 
-# ls con lsd
+# lsd (mejor ls)
+alias ls='lsd --group-dirs=first'
 alias ll='lsd -lh --group-dirs=first'
 alias la='lsd -a --group-dirs=first'
-alias l='lsd --group-dirs=first'
 alias lla='lsd -lha --group-dirs=first'
-alias ls='lsd --group-dirs=first'
+alias l='lsd --group-dirs=first'
 
-# Alias para Hack The Box (Usando $HOME para portabilidad)
+# editor
+alias v='nvim'
+alias vi='nvim'
+
+# sudo (permite aliases con sudo)
+alias sudo='sudo '
+
+# sistema
+alias updatedb='sudo /usr/local/bin/updatedb-wrapper 2>/dev/null || sudo updatedb'
+alias cls='clear'
+alias reload='source ~/.zshrc'
+
+# =============================================================
+# ALIASES — HACKING / HTB
+# =============================================================
 alias htbcon='sudo openvpn $HOME/ovpn/dnk29.ovpn'
 alias htbdes='sudo killall openvpn'
+alias myip='ip -o -4 addr show | awk '"'"'{print $2, $4}'"'"''
+alias ports='ss -tulnp'
+alias listening='ss -tulnp | grep LISTEN'
 
-# --- FUNCIONES DE AUDITORÍA (Target para Polybar) ---
-function settarget(){
-    if [ $# -ne 2 ]; then
+# =============================================================
+# ALIASES — VPN NORDVPN
+# =============================================================
+alias vpn-stat='nordvpn status'
+alias vpn-on='nordvpn connect'
+alias vpn-off='nordvpn disconnect'
+alias vpn-es='nordvpn connect Spain'
+
+# =============================================================
+# ALIASES — HERRAMIENTAS PENTESTING
+# =============================================================
+alias burpsuite='/usr/local/bin/burpsuite'
+alias bp='burpsuite &>/dev/null &'
+
+# =============================================================
+# FUNCIONES — TARGET (para Polybar)
+# =============================================================
+function settarget() {
+    if [[ $# -ne 2 ]]; then
         echo "Uso: settarget <IP> <NOMBRE>"
         return 1
     fi
-    # Primero creamos la carpeta por si acaso no existe
     mkdir -p "$HOME/.config/bin"
-
-    # Escribimos la IP y el Nombre directamente al archivo
     echo "$1 $2" > "$HOME/.config/bin/target"
-    echo "Target fijado: $1 - $2"
+    echo "✓ Target: $1 — $2"
 }
 
-function cleartarget(){
+function cleartarget() {
     echo '' > "$HOME/.config/bin/target"
-    echo "Target eliminado."
+    echo "✓ Target eliminado"
 }
 
-alias target='cat $HOME/.config/bin/target | awk "{print \$1}"'
+alias target='cat $HOME/.config/bin/target 2>/dev/null | awk "{print \$1}"'
+alias target-name='cat $HOME/.config/bin/target 2>/dev/null | awk "{print \$2}"'
 
-# --- AUTOSTART BSPWM (Optimizado para MacBook) ---
-if [[ -z $DISPLAY && $XDG_VTNR -eq 1 ]]; then
-  # El 'sleep 1' que añadimos para los drivers del Mac sigue siendo útil
-  sleep 1 && exec startx
+# =============================================================
+# FUNCIONES — UTILIDADES
+# =============================================================
+
+# Extraer cualquier comprimido
+extract() {
+    if [[ -f "$1" ]]; then
+        case "$1" in
+            *.tar.bz2)  tar xjf "$1"    ;;
+            *.tar.gz)   tar xzf "$1"    ;;
+            *.tar.xz)   tar xJf "$1"    ;;
+            *.bz2)      bunzip2 "$1"    ;;
+            *.rar)      unrar x "$1"    ;;
+            *.gz)       gunzip "$1"     ;;
+            *.tar)      tar xf "$1"     ;;
+            *.tbz2)     tar xjf "$1"    ;;
+            *.tgz)      tar xzf "$1"    ;;
+            *.zip)      unzip "$1"      ;;
+            *.Z)        uncompress "$1" ;;
+            *.7z)       7z x "$1"       ;;
+            *)          echo "'$1' no se puede extraer" ;;
+        esac
+    else
+        echo "'$1' no es un archivo válido"
+    fi
+}
+
+# mkcd — crear carpeta y entrar
+mkcd() { mkdir -p "$1" && cd "$1"; }
+
+# Buscar proceso por nombre
+psgrep() { ps aux | grep -v grep | grep "$1"; }
+
+# IP pública
+pubip() { curl -s https://ipinfo.io/ip; echo; }
+
+# =============================================================
+# OLLAMA + CLAUDE CODE
+# =============================================================
+# GPU legacy NVIDIA 320M — forzar CPU para evitar warning de drivers
+export OLLAMA_NUM_GPU_LAYERS=0
+export OLLAMA_DEBUG=0
+
+# Claude Code apunta a Ollama local
+export ANTHROPIC_BASE_URL="http://localhost:11434/v1"
+export ANTHROPIC_MODEL="kimi-k2.5:cloud"
+
+# Función para lanzar el agente en el directorio actual
+agent() {
+    local model="${1:-kimi-k2.5:cloud}"
+    echo "Lanzando agente Claude Code con modelo: $model"
+    claude --model "$model"
+}
+
+# =============================================================
+# AUTOSTART X11 (solo en TTY1, sin display activo)
+# =============================================================
+if [[ -z "$DISPLAY" && "$XDG_VTNR" -eq 1 ]]; then
+    sleep 1 && exec startx
 fi
 
-# ----------------------------------------------------
-# 🛡️ OPSEC: ZSH Tactical History
-# ----------------------------------------------------
-# No guarda comandos que empiecen con un espacio
-setopt HIST_IGNORE_SPACE
-# No guarda el mismo comando dos veces seguidas
-setopt HIST_IGNORE_DUPS
-# Elimina el comando antiguo si se escribe uno igual
-setopt HIST_IGNORE_ALL_DUPS
-# No guarda el comando 'history' o 'fc -l'
-setopt HIST_NO_STORE
-
-# Silenciar errores de permisos en updatedb (especialmente /run/user/1000/doc)
-alias updatedb='sudo /usr/local/bin/updatedb-wrapper'
-
-# Sudo
-alias sudo='sudo '
-
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+# =============================================================
+# POWERLEVEL10K — configuración personalizada
+# =============================================================
+[[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh

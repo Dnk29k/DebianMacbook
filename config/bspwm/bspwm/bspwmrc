@@ -1,0 +1,41 @@
+#! /bin/sh
+
+# Inicia sxhkd
+pgrep -x sxhkd > /dev/null || sxhkd &
+
+# Configuraión monitores
+bspc monitor -d I II III IV V VI VII VIII IX X
+
+# Configuración general de bspwm
+bspc config border_width         2
+bspc config window_gap          12
+bspc config top_padding 	55
+
+bspc config split_ratio          0.52
+bspc config borderless_monocle   true
+bspc config gapless_monocle      true
+
+# Reglas de ventanas
+bspc rule -a Gimp desktop='^8' state=floating follow=on
+bspc rule -a Chromium desktop='^2'
+bspc rule -a mplayer2 state=floating
+bspc rule -a Kupfer.py focus=on
+bspc rule -a Screenkey manage=off
+
+# Background
+/usr/bin/feh --bg-fill  /home/dnk29/Fondos/Fondo5.jpg &
+
+#~/.config/polybar/./Launch.sh &
+# Cambia tu línea actual por esta:
+/home/dnk29/.config/polybar/launch.sh > /tmp/polybar.log 2>&1 &
+
+picom &
+
+# Reglas para que Thunar y diálogos de archivos sean flotantes
+bspc rule -a Thunar state=floating rectangle=800x500+560+290
+bspc rule -a Xfce4-terminal state=floating
+bspc rule -a "*" -o state=floating
+
+# Específico para diálogos de archivos de navegadores
+bspc rule -a Firefox:Dialog state=floating
+bspc rule -a Google-chrome:Dialog state=floating

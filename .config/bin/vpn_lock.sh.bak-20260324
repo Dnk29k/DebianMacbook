@@ -1,0 +1,24 @@
+--- vpn_lock.sh.orig
++++ vpn_lock.sh
+@@
+ #!/bin/bash
+
+ # 🛡️ VPN Killswitch Táctico - DebianMacbook Edition
+ if [ "$EUID" -ne 0 ]; then
+   echo "🚨 Por favor, ejecuta como root (sudo)"
+   exit
+ fi
++
++# AVISO DE SEGURIDAD:
++# Este script está diseñado solo para escenarios OPSEC con tun0/OpenVPN.
++# NO es compatible con NordVPN Meshnet/NordLynx en su forma activa.
++# Si Meshnet está habilitado, abortamos para no cortar SSH o peers de la malla.
++if nordvpn settings 2>/dev/null | grep -qi '^Meshnet: enabled'; then
++  echo "🚫 Meshnet está habilitado. Este killswitch no debe ejecutarse en este estado."
++  exit 1
++fi
+
+ # Detectar la subred local automáticamente (para no bloquear el acceso al router)
+-LOCAL_NET=$(ip route | grep eth0 -m 1 | awk '{print $1}')
++LOCAL_NET=$(ip route | grep enp3s0 -m 1 | awk '{print $1}')
+ [ -z "$LOCAL_NET" ] && LOCAL_NET=$(ip route | grep wlan0 -m 1 | awk '{print $1}')

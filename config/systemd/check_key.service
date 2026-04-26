@@ -1,0 +1,20 @@
+[Unit]
+Description=MacBook SD-AUTH Validation Service
+Documentation=https://github.com/Dnk29k/DebianMacbook
+DefaultDependencies=no
+After=local-fs.target systemd-udev-trigger.service
+Before=multi-user.target shutdown.target
+ConditionPathExists=/usr/local/etc/key_data
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/check_key.sh
+Environment="SKIP_SD_AUTH=0"
+RemainAfterExit=yes
+TimeoutStartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=check_key
+
+[Install]
+WantedBy=multi-user.target
